@@ -78,17 +78,20 @@
 
 \begin{document}
 
-\title{TEXT}
+\title{On the guess consistency in multi-incremental multi-resolution variational data assimilation}
 
 
 % \Author[affil]{given_name}{surname}
 
-\Author[]{}{}
-\Author[]{}{}
-\Author[]{}{}
+\Author[1]{Nicolas}{Baillot d'Étiaux}
+\Author[2]{Benjamin}{Ménétrier}
+\Author[3]{Selime}{Gürol}
+\Author[4]{Yann}{Michel}
 
-\affil[]{ADDRESS}
-\affil[]{ADDRESS}
+\affil[1]{CNRM, Université de Toulouse, Météo-France, CNRS, Toulouse, France}
+\affil[2]{IRIT, ...}
+\affil[2]{CERFACS, ...}
+\affil[4]{Météo-France, ...}
 
 %% The [] brackets identify the author with the corresponding affiliation. 1, 2, 3, etc. should be inserted.
 
@@ -97,7 +100,7 @@
 %% If authors contributed equally, please mark the respective author names with an asterisk, e.g. "\Author[2,*]{Anton}{Smith}" and "\Author[3,*]{Bradley}{Miller}" and add a further affiliation: "\affil[*]{These authors contributed equally to this work.}".
 
 
-\correspondence{NAME (EMAIL)}
+\correspondence{Benjamin Ménétrier (benjamin.menetrier@irit.fr)}
 
 \runningtitle{TEXT}
 
@@ -123,24 +126,37 @@
 
 
 \begin{abstract}
-TEXT
+Variational Data Assimilation (DA) schemes are often used to adress high dimensional non-linear problems in operational applications in the Numerical Wheather Prediction (NWP) domain. Because of the high computational cost of such minimization problems, various methods can be applied to improve the convergence at a reasonable numerical cost. One of these methods currently applied in operational DA schemes is the multi-incremental approach that consists in solving a succession of linearized versions of the original non-linear problem in several outer loops, by using well known algorithms to ensure the convergence of the linear problem at the inner loop level, and using the solution of the inner loops to update the problem at each outer loop. In order to save computational cost, the multi-incremental multi-resolution method consists in starting the minimization at a lower resolution than the original one, and increasing it at the outer loop level until the full resolution of the problem. In such a scheme, the way to compute the new guess at each outer loop from the previous iterations is crucial. We adress the question of the guess consistency in the standard method currently used in operational systems, and also present a new method which ensures the guess consistency and need simpler calculations. 
+
+%On the other hand, the conditionning of NWP problems is often poor, and one can use preconditionning techniques in order to improve the convergence. We have applied the multi-incremental multi-resolution scheme to a simplified problem in order to study the equivalence of two well known preconditionnings ("full" $\mathbf{B}$ or "square root" $\mathbf{B}$) in such a scheme and also present a new alternative method to update the problem at the outer loop level. We illustrate the differences with the standard method currently used and compare those two methods to the theoretical result. Some equivalence conditions between the updating methods and the two preconditionnings are drawn according to the way the resolution change is realised at the outer loop level.
 \end{abstract}
 
 
-\copyrightstatement{TEXT} %% This section is optional and can be used for copyright transfers.
+%\copyrightstatement{TEXT} %% This section is optional and can be used for copyright transfers.
 
 
 \introduction  %% \introduction[modified heading if necessary]
-TEXT
+intro...
 
 
-\section{HEADING}
-TEXT
+\section{Data Assimilation Problem}
+presenting the general problem
 
 
-\subsection{HEADING}
-TEXT
+\subsection{Multi-incremental data assimilation}
+present the multi-incremental scheme.
 
+\subsection{Changing the resolution}
+in special cases, the background error covariance matrix can be updated between outer iterations defining $\mathbf{B}_k$ and its square-root $\mathbf{U}_k$. In this case, one can obtain the background increment as
+        \begin{align}
+        \label{eq:back_inc_B_diff}
+        \delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i,
+        \end{align}
+        \begin{align}
+        \label{eq:back_inc_U_diff}
+        \delta \mathbf{v}^b_k & = - \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i.
+        \end{align}
+        If $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$ or if $\mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i \ne \delta \mathbf{v}^a_i$, equation \eqref{eq:inc_recur} cannot be used consistently. This is the case if the resolution increases between the outer loops for computational efficiency. Therefore, the $\mathbf{B}$ matrix depends on $k$ and one needs to use interpolators in model space $\mathbf{T}^\mathbf{x}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ and in control space $\mathbf{T}^\mathbf{v}_{i \rightarrow k} \in \mathbb{R}^{m_k \times m_i}$ from the resolution $\mathcal{R}_i$ to $\mathcal{R}_k$, where $n_k$ and $m_k$ respectively denotes the size of the model space and the control space.
 
 \subsubsection{HEADING}
 TEXT
