@@ -9,7 +9,7 @@
 %% Please use the following documentclass and journal abbreviations for preprints and final revised papers.
 
 %% 2-column papers and preprints
-\documentclass[journal abbreviation, manuscript]{copernicus}
+\documentclass[npg, manuscript]{copernicus}
 
 
 
@@ -134,32 +134,103 @@ Variational Data Assimilation (DA) schemes are often used to adress high dimensi
 
 %\copyrightstatement{TEXT} %% This section is optional and can be used for copyright transfers.
 
-
-\introduction  %% \introduction[modified heading if necessary]
+%---------------------------------------------------------------------------------
+\introduction
 intro...
 
-
+%---------------------------------------------------------------------------------
 \section{Data Assimilation Problem}
-presenting the general problem
+% Introducing the global problem.
+In Data Assimilation (DA), one wants to minimize the following non linear cost function representing the ability of a model state to be compatible with observations:
+\begin{align}
+\hspace{-0.7cm} \mathcal{J}(\mathbf{x}) = \frac{1}{2} \left(\mathbf{x}-\mathbf{x}^b\right)^\mathrm{T} \mathbf{B}^{-1} \left(\mathbf{x}-\mathbf{x}^b\right) + \frac{1}{2} \left(\mathbf{y}^o-\mathcal{H}(\mathbf{x})\right)^\mathrm{T} \mathbf{R}^{-1} \left(\mathbf{y}^o-\mathcal{H}(\mathbf{x})\right),
+\end{align}
+where $\mathbf{x} \in \mathbb{R}^n$ is the state in model space of size $n$, $\mathbf{x}^b \in \mathbb{R}^n$ is the background state, $\mathbf{B} \in \mathbb{R}^{n \times n}$ is the background error covariance matrix, $\mathbf{y}^o \in \mathbb{R}^p$ is the observation vector  in observation space of size $p$ (note that in general $p<n$), $\mathbf{R} \in \mathbb{R}^{p \times p}$ is the observation error covariance matrix, and $\mathcal{H} : \mathbb{R}^n \rightarrow \mathbb{R}^p$ is the observation operator which maps the model space to the observation space. 
+
+\subsection{Problem linearization}
+In general the observation operator is nonlinear and can be linearized around a guess state $\mathbf{x}^g_k \in \mathbb{R}^n$ so that: $\mathcal{H}(\mathbf{x}) \approx \mathcal{H}(\mathbf{x}^g_k) + \mathbf{H}_k \delta \mathbf{x}_k$ for $\mathbf{x} \approx \mathbf{x}^g_k$, defining the increment $\delta \mathbf{x}_k =  \mathbf{x}-\mathbf{x}^g_k$, and where $\mathbf{H}_k \in \mathbb{R}^{p \times m}$ is the observation operator linearized around the guess state: $H_{k,ij} = \left.\frac{\partial \mathcal{H}_i}{\partial x_j}\right|_{\mathbf{x} = \mathbf{x}^g_k}$. Instead of minimizing the full cost function $\mathcal{J}(\mathbf{x})$, it is now possible to minimize successive quadratic approximations around successive guess states:
+\begin{align}
+\label{eq:cost_quad}
+J \left(\delta \mathbf{x}_k\right) = \frac{1}{2} \left(\delta \mathbf{x}_k-\delta \mathbf{x}^b_k\right)^\mathrm{T} \mathbf{B}^{-1} \left(\delta \mathbf{x}_k-\delta \mathbf{x}^b_k\right) + \frac{1}{2} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}_k\right)^\mathrm{T} \mathbf{R}^{-1} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}_k\right)
+\end{align}
+where $k$ indicates the $k^{th}$ iteration (hereafter these iterations are called "outer loops" since the minimization of the successive approximations are realized using well known iterative solvers such as lanczos alorithms \cite{}. We call "inner loops" the iterations of these algorithms), $\delta \mathbf{x}^b_k = \mathbf{x}^b - \mathbf{x}^g_k$ is the background increment and $\mathbf{d}_k = \mathbf{y}^o - \mathcal{H}(\mathbf{x}^g_k)$ is the innovation vector.\\
+
+Setting the gradient of $J(\delta \mathbf{x}_k)$ to zero gives the analysis increment $\delta \mathbf{x}^a_k$:
+\begin{align}
+\label{eq:inc}
+& \ \mathbf{B}^{-1} \left(\delta \mathbf{x}^a_k - \delta \mathbf{x}^b_k\right) - \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}^a_k\right) = 0 \nonumber \\
+\Leftrightarrow & \ \left(\mathbf{B}^{-1} + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k\right) \delta \mathbf{x}^a_k = \mathbf{B}^{-1} \delta \mathbf{x}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k \nonumber \\
+\Leftrightarrow & \ \boxed{\mathbf{A}^\mathbf{x}_k \delta \mathbf{x}^a_k = \mathbf{b}^\mathbf{x}_k}
+\end{align}
+with $\mathbf{A}^\mathbf{x}_k \in \mathbb{R}^{n \times n}$ and the right hand side $\mathbf{b}^\mathbf{x}_k \in \mathbb{R}^{n}$ defined as:
+\begin{align}
+\mathbf{A}^\mathbf{x}_k & = \mathbf{B}^{-1} + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k , \\
+\mathbf{b}^\mathbf{x}_k & = \mathbf{B}^{-1} \delta \mathbf{x}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k .
+\end{align}
+The problem can now be solved using Gauss-Newton algorithm. It is very common to use the background state as a guess for the first iteration $k=1$ ($\mathbf{x}^g_1 = \mathbf{x}^b$), and then for $k>1$, the analysis of the previous iteration is used to define the guess ($\mathbf{x}^g_k = \mathbf{x}^a_{k-1}$). Thus, the first background increment is $\delta \mathbf{x}^b_1 = \mathbf{x}^g_1 - \mathbf{x}^b = 0$, and the following ones can be computed as:
+\begin{align}
+\delta \mathbf{x}^b_k & = \mathbf{x}^b - \mathbf{x}^g_k, \nonumber \\
+& = \mathbf{x}^b - \mathbf{x}^a_{k-1}, \nonumber \\
+& = \mathbf{x}^b - \left(\mathbf{x}^g_{k-1} + \delta \mathbf{x}^a_{k-1}\right), \nonumber \\
+& = \delta \mathbf{x}^b_{k-1} - \delta \mathbf{x}^a_{k-1},
+\end{align}
+which can be combined recursively to yield:
+\begin{align}
+\label{eq:back_inc}
+\delta \mathbf{x}^b_k & = - \sum_{i=1}^{k-1} \delta \mathbf{x}^a_i.
+\end{align}
+
+In general, the condition number of this problem is poor, and one has to use preconditionning techniques to improve it.
+
+\subsection{Preconditionning}
+% Presenting the square root B preconditionning, we discuss later the equivalence with the full B preconditionning.
+In this section we describe the square root $\mathbf{B}$ preconditionning, which is widely used in DA. 
+The $\mathbf{B}$ matrix have the important property of being positive definite, so that there is an infinity of square-roots $\mathbf{U}$ verifying $\mathbf{B} = \mathbf{U} \mathbf{U}^\mathrm{T}$. The square root $\mathbf{B}$ preconditionning consists in defining a new variable $\delta \mathbf{v}_k = \mathbf{U}^\mathrm{T} \mathbf{B}^{-1} \delta \mathbf{x}_k$, so that the linear system (\ref{eq:inc}) can now be written as $\mathbf{A}^\mathbf{v}_k \delta \mathbf{v}^a_k = \mathbf{b}^\mathbf{v}_k$ with:
+\begin{align}
+\mathbf{A}^\mathbf{v}_k & = \mathbf{I}_m + \mathbf{U}^\mathrm{T} \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{U},\\
+\mathbf{b}^\mathbf{v}_k & = \delta \mathbf{v}^b_k + \mathbf{U}^\mathrm{T} \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k.
+\end{align}
+
+Using these techniques allows to recursively solve the system without using $\mathbf{B}^{-1}$ which is, in general, not available due to its high dimension, even if it is needed in general to compute the right-hand side $\mathbf{b}^\mathbf{v}_k$: $\mathbf{U}^\mathrm{T} \mathbf{B}^{-1}$ can be applied on both side of equation \eqref{eq:back_inc}, leading to:
+\begin{align}
+\label{eq:back_inc_U}
+\delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \delta \mathbf{v}^a_i,
+\end{align}
+which can be used to compute the right hand side $\mathbf{b}^\mathbf{v}_k$ without requiring $\mathbf{B}^{-1}$.
 
 
-\subsection{Multi-incremental data assimilation}
-present the multi-incremental scheme.
+%\subsection{Changing the resolution between outer loops}
+\subsection{Changing $\mathbf{B}$ at outer loop level}
+In special cases, the background error covariance matrix can be updated between outer iterations defining $\mathbf{B}_k$, and its square-root $\mathbf{U}_k$. In this case, it is not systematically possible to compute the background increment without using $\mathbf{B}^{-1}$. One example of such a scheme is the multi-incremental multi-resolution approach, in which the resolution increases at each outer loop for computational efficiency, and therefore, the $\mathbf{B}$ matrix depends on $k$. In this case, Equation \eqref{eq:back_inc_U} is valid and one can obtain the background increment as follows:
+\begin{align}
+\label{eq:back_inc_U_diff}
+\delta \mathbf{v}^b_k & = - \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \sum_{i=1}^{k-1} \delta \mathbf{x}^a_i, \nonumber \\
+& = - \sum_{i=1}^{k-1} \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i.
+\end{align}
+It should be emphasized that if $\mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i \ne \delta \mathbf{v}^a_i$, equation \eqref{eq:back_inc_U} cannot be used consistently.
 
-\subsection{Changing the resolution}
-in special cases, the background error covariance matrix can be updated between outer iterations defining $\mathbf{B}_k$ and its square-root $\mathbf{U}_k$. In this case, one can obtain the background increment as
-        \begin{align}
-        \label{eq:back_inc_B_diff}
-        \delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i,
-        \end{align}
-        \begin{align}
-        \label{eq:back_inc_U_diff}
-        \delta \mathbf{v}^b_k & = - \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i.
-        \end{align}
-        If $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$ or if $\mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i \ne \delta \mathbf{v}^a_i$, equation \eqref{eq:inc_recur} cannot be used consistently. This is the case if the resolution increases between the outer loops for computational efficiency. Therefore, the $\mathbf{B}$ matrix depends on $k$ and one needs to use interpolators in model space $\mathbf{T}^\mathbf{x}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ and in control space $\mathbf{T}^\mathbf{v}_{i \rightarrow k} \in \mathbb{R}^{m_k \times m_i}$ from the resolution $\mathcal{R}_i$ to $\mathcal{R}_k$, where $n_k$ and $m_k$ respectively denotes the size of the model space and the control space.
 
-\subsubsection{HEADING}
-TEXT
+
+%one needs to use interpolators in model space $\mathbf{T}^\mathbf{x}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ and in control space $\mathbf{T}^\mathbf{v}_{i \rightarrow k} \in \mathbb{R}^{m_k \times m_i}$ from the resolution $\mathcal{R}_i$ to $\mathcal{R}_k$, where $n_k$ and $m_k$ respectively denotes the size of the model space and the control space.
+
+%---------------------------------------------------------------------------------
+\section{Guess consistency}
+
+\subsection{Theoretical method}
+
+\subsection{Standard method}
+
+\subsubsection{Simplified standard method}
+
+\subsubsection{Corrected standard method}
+
+\subsection{Consitent method}
+
+%---------------------------------------------------------------------------------
+\section{Methodology and results}
+Show the quadratc cost function (obs and background) + tables
+
+%---------------------------------------------------------------------------------
 
 
 \conclusions  %% \conclusions[modified heading if necessary]
@@ -184,10 +255,32 @@ TEXT
 
 
 \appendix
-\section{}    %% Appendix A
+\section{Equivalence between preconditionners}
+Another precondi technique consists in defining a new variable $\delta \overline{\mathbf{x}}_k = \mathbf{B}_k^{-1} \delta \mathbf{x}_k$, where $\delta \mathbf{x}_k$ is the state model increment of iteration $k$ of a Gauss-Newton algorithm, and $\mathbf{B_k}$ is the model error covariance matrix, so that the linear system to solve can be written as $\mathbf{A}^{\overline{\mathbf{x}}}_k \delta \overline{\mathbf{x}}^a_k = \mathbf{b}^{\overline{\mathbf{x}}}_k$, $\delta \overline{\mathbf{x}}^a_k$ being the preconditionned analysis increment, and with $\mathbf{A}^{\overline{\mathbf{x}}}_k = \mathbf{I}_n + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{B}_k$ and the right hand side $\mathbf{b}^{\overline{\mathbf{x}}}_k =  \delta \overline{\mathbf{x}}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k$, where $\mathbf{R}_k$ is the observation error covariance matrix, $\mathbf{H}_k$ is the observation operator linearized around a guess state, and $\mathbf{d_k}$ is the innovation vector \cite{selime}\cite{dereber}. 
+\begin{align}
+ \quad \textrm{and} \quad \delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \delta \mathbf{v}^a_i .
+\label{eq:inc_recur}
+\end{align}
 
-\subsection{}     %% Appendix A1, A2, etc.
 
+With the full $\mathbf{B}$ preconditioning, $\mathbf{B}^{-1}$ can be applied on both side of equation \eqref{eq:back_inc}:
+\begin{align}
+\label{eq:back_inc_B}
+\boxed{\delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \delta \overline{\mathbf{x}}^a_i}
+\end{align}
+
+With the full $\mathbf{B}$ preconditioning:
+\begin{align}
+\label{eq:back_inc_B_diff}
+\delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i \nonumber \\
+& = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i
+\end{align}
+If $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$, equation \eqref{eq:back_inc_B} cannot be used consistently.
+
+\begin{align}
+\label{eq:back_inc_B_diff}
+\delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i,
+\end{align}
 
 \noappendix       %% use this to mark the end of the appendix section. Otherwise the figures might be numbered incorrectly (e.g. 10 instead of 1).
 
