@@ -75,6 +75,7 @@
 %\usepackage{subfig}
 %\usepackage{rotating}
 
+%\newcommand{\nb}{\textsuperscript{\color{blue}{#1}}}
 
 \begin{document}
 
@@ -154,7 +155,7 @@ In general the observation operator is nonlinear and can be linearized around a 
 \label{eq:cost_quad}
 J \left(\delta \mathbf{x}_k\right) = \frac{1}{2} \left(\delta \mathbf{x}_k-\delta \mathbf{x}^b_k\right)^\mathrm{T} \mathbf{B}^{-1} \left(\delta \mathbf{x}_k-\delta \mathbf{x}^b_k\right) + \frac{1}{2} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}_k\right)^\mathrm{T} \mathbf{R}^{-1} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}_k\right)
 \end{align}
-where $k$ indicates the $k^{th}$ iteration (hereafter these iterations are called "outer loops" since the minimization of the successive approximations are realized using well known iterative solvers such as lanczos alorithms \cite{}. We call "inner loops" the iterations of these algorithms), $\delta \mathbf{x}^b_k = \mathbf{x}^b - \mathbf{x}^g_k$ is the background increment and $\mathbf{d}_k = \mathbf{y}^o - \mathcal{H}(\mathbf{x}^g_k)$ is the innovation vector.\\
+where $k$ indicates the $k^{th}$ iteration (hereafter these iterations are called "outer loops" since the minimization of the successive approximations are realized using well known iterative solvers such as lanczos alorithms. We call "inner loops" the iterations of these algorithms), $\delta \mathbf{x}^b_k = \mathbf{x}^b - \mathbf{x}^g_k$ is the background increment and $\mathbf{d}_k = \mathbf{y}^o - \mathcal{H}(\mathbf{x}^g_k)$ is the innovation vector.\\
 
 Setting the gradient of $J(\delta \mathbf{x}_k)$ to zero gives the analysis increment $\delta \mathbf{x}^a_k$:
 \begin{align}
@@ -227,19 +228,58 @@ A special class of interpolators called "transitive interpolators" have three ex
 \mathbf{T}^\mathbf{x}_{k \rightarrow i} \mathbf{T}^\mathbf{x}_{i \rightarrow k} = \mathbf{I}_{n_i}
 \end{align}
 \end{itemize}
-and similarly for $\mathbf{T}^\mathbf{v}_{i \rightarrow k}$ in control space, replacing $n$ with $m$.\\
-$  $\\
+and similarly for $\mathbf{T}^\mathbf{v}_{i \rightarrow k}$ in control space, replacing $n$ with $m$.
+
+A generic family of transitive interpolators is based on a zero-padding operator surrounded by an orthogonal transform. For instance in model space:
+\begin{align}
+\mathbf{T}^\mathbf{x}_{i \rightarrow k} = \mathbf{S}^\mathrm{T}_k \boldsymbol{\Delta}_{i \rightarrow k} \mathbf{S}_i,
+\end{align}
+where
+\begin{itemize}
+\item $\boldsymbol{\Delta}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ is a zero-padding operator:
+\begin{align}
+\Delta_{i \rightarrow k, \alpha \beta} = \left\{
+\begin{array}{ccc}
+1 & \text{ if } & \alpha = \beta \\
+0 & \text{ if } & \alpha \ne \beta
+\end{array}\right.
+\end{align}
+\item $\mathbf{S}_k \in \mathbb{R}^{n_k \times n_k}$ is any orthogonal transform:
+\begin{align}
+\mathbf{S}_k \mathbf{S}_k^\mathrm{T} = \mathbf{S}_k^\mathrm{T} \mathbf{S}_k = \mathbf{I}_{n_k}.
+\end{align}
+\end{itemize}
+It is easy to check the three required properties:
+\begin{itemize}
+\item Upscaling transitivity: for $n_i \le n_j$ and $n_i \le n_k$:
+\begin{align}
+\mathbf{T}^\mathbf{x}_{j \rightarrow k} \mathbf{T}^\mathbf{x}_{i \rightarrow j} & = \mathbf{S}^\mathrm{T}_k \boldsymbol{\Delta}_{j \rightarrow k} \mathbf{S}_j \mathbf{S}^\mathrm{T}_j  \boldsymbol{\Delta}_{i \rightarrow j} \mathbf{S}_i \nonumber \\
+& = \mathbf{S}^\mathrm{T}_k \boldsymbol{\Delta}_{j \rightarrow k} \boldsymbol{\Delta}_{i \rightarrow j} \mathbf{S}_i \nonumber \\
+& = \mathbf{S}^\mathrm{T}_k \boldsymbol{\Delta}_{i \rightarrow k} \mathbf{S}_i \nonumber \\
+& = \mathbf{T}^\mathbf{x}_{i \rightarrow k}.
+\end{align}
+\item Downscaling transitivity: for $n_i \le n_j \le n_k$:
+\begin{align}
+\mathbf{T}^\mathbf{x}_{j \rightarrow i} \mathbf{T}^\mathbf{x}_{k \rightarrow j} & = \mathbf{S}^\mathrm{T}_i \boldsymbol{\Delta}_{j \rightarrow i} \mathbf{S}_j \mathbf{S}^\mathrm{T}_j \boldsymbol{\Delta}_{k \rightarrow j} \mathbf{S}_k \nonumber \\
+& = \mathbf{S}^\mathrm{T}_i \boldsymbol{\Delta}_{j \rightarrow i} \boldsymbol{\Delta}_{k \rightarrow j} \mathbf{S}_k \nonumber \\
+& = \mathbf{S}^\mathrm{T}_i \boldsymbol{\Delta}_{k \rightarrow i} \mathbf{S}_k \nonumber \\
+& = \mathbf{T}^\mathbf{x}_{k \rightarrow i}.
+\end{align}
+\item Right-inverse: for $n_i \le n_k$
+\begin{align}
+\mathbf{T}^\mathbf{x}_{k \rightarrow i} \mathbf{T}^\mathbf{x}_{i \rightarrow k} & = \mathbf{S}^\mathrm{T}_i \boldsymbol{\Delta}_{k \rightarrow i} \mathbf{S}_k \mathbf{S}^\mathrm{T}_k \boldsymbol{\Delta}_{i \rightarrow k} \mathbf{S}_i \nonumber \\
+& = \mathbf{S}^\mathrm{T}_i \boldsymbol{\Delta}_{k \rightarrow i} \boldsymbol{\Delta}_{i \rightarrow k} \mathbf{S}_i \nonumber \\
+& = \mathbf{S}^\mathrm{T}_i \mathbf{S}_i \nonumber \\
+& = \mathbf{I}_{n_i}.
+\end{align}
+\end{itemize}
+
 Associated to the various resolution, we qualify a $\mathbf{B}$ family as "projective" if the low-resolution members can be defined as a projection of the high-resolution one, using transitive interpolators. For $n_i < n_k$, that would mean:
 \begin{align}
-\label{eq:projective_definition_B}
-\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} = \mathbf{T}^\mathbf{x}_{i \rightarrow k} \mathbf{B}_i
-\end{align}
-and for the square-root of $\mathbf{B}$:
-\begin{align}
 \label{eq:projective_definition_U}
-\mathbf{U}_k \mathbf{T}^\mathbf{v}_{i \rightarrow k} = \mathbf{T}^\mathbf{x}_{i \rightarrow k} \mathbf{U}_i
+\mathbf{U}_k \mathbf{T}^\mathbf{v}_{i \rightarrow k} = \mathbf{T}^\mathbf{x}_{i \rightarrow k} \mathbf{U}_i.
 \end{align}
-The multi-resolution problem should be solved with the following requirements in mind:
+Finally, the multi-resolution problem should be solved with the following requirements in mind:
 \begin{itemize}
 \item The background $\mathbf{x}^b$ is provided at full resolution, but it can be simplified at resolution $\mathcal{R}_k$:
 \begin{align}
@@ -280,7 +320,7 @@ In the "theoretical" method, one assumes that $\mathbf{B}_k^{-1}$ is available a
 In the "standard" method, which is currently used in operational multi-incremental multi-resolution schemes, $\mathbf{B}_k^{-1}$ is not available and the first term of the right-hand side is computed separately, using transformed versions of equation \eqref{eq:back_inc_U} with appropriate interpolations:
 \begin{align}
 \label{eq:back_inc_Uvar}
-\boxed{\delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i}
+\delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i
 \end{align}
 This additional constraint imposes a unique expression for the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$, if the guess consistency has to be maintained.
 
@@ -345,7 +385,7 @@ If one uses transitive interpolators, the right inverse of $\mathbf{T}^\mathbf{x
 Equation \eqref{eq:transitive_condition_U} estimates $\delta \mathbf{x}^{a+}_{k-1}$ using results from outer iterations 1 to $k-1$, not outer iteration $k-1$ only.  Hereafter, this expression is refered to as "corrected expression".
 
 \subsection{Consitent method}
-An new alternative method in which the guess consistency is guaranteed can be defined. THis method also have the advantage of requiring much more simpler calculations than the "standard" method and gives the same results. The basic idea is to reverse the order of computations: the first term of the right-hand side is computed first from equation \eqref{eq:back_inc_Uvar}, and then the background increment is given by:
+An new alternative method in which the guess consistency is guaranteed can be defined. This method also have the advantage of requiring much more simpler calculations than the "standard" method and gives the same results. The basic idea is to reverse the order of computations: the first term of the right-hand side is computed first from equation \eqref{eq:back_inc_Uvar}, and then the background increment is given by:
 \begin{align}
 \label{eq:alternative_U}
 \delta \mathbf{x}^b_k & = \mathbf{U}_k \delta \mathbf{v}^b_k
@@ -353,16 +393,80 @@ An new alternative method in which the guess consistency is guaranteed can be de
 Finally, the full resolution guess is deduced as:
 \begin{align}
 \label{eq:alternative_guess_full}
-\mathbf{x}^{g+}_k = \mathbf{x}^b - \mathbf{T}^\mathbf{x}_{k \rightarrow K} \delta \mathbf{x}^b_k
+\mathbf{x}^{g+}_k = \mathbf{x}^b - \mathbf{T}^\mathbf{x}_{k \rightarrow K} \delta \mathbf{x}^b_k,
 \end{align}
+ensuring its consistency.
 
-In this method, the guess consistency is maintained since 
+\subsection{Methods comparision}
+Guess consistency is always ensured for the "theoretical" and "consistent" methods. For the "standard" method, it is only ensured if one uses transitive interpolators, and the correct formula for the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$. In the general case, it depends whether equation \eqref{eq:general_condition_U} can be solved or not.
+In the general case, if a solution exists for the "standard" method, the same $\delta \mathbf{x}^{a+}_{k-1}$ can be used for the "theoretical" method and all methods give the same results. In the case where no solution can be found for the "standard" method, another expression is used for the "theoretical" one, which leads to different results from the "alternative" method.
+In the case of transitive interpolators, "standard" and "consistent" methods always give the same results and are in agreement with the "theoretical" method if the same expression is used for $\delta \mathbf{x}^{a+}_{k-1}$. The case of a projective $\mathbf{B}$ family is just a subcase of the transitive interpolators one, where the expression of $\delta \mathbf{x}^{a+}_{k-1}$ can be simplified for the "theoretical" and "standard" methods.
 
+The figure (\ref{fig01}), (\ref{fig02}) and (\ref{fig03}) respectively illustrate the workflow of the three methods.
 
+\begin{figure}[H]
+ \begin{center}
+  \includegraphics[width=0.3\linewidth]{fig/th.png}
+  \caption{\label{fig01} Illustrative workflow of the theoretical method. The full resolution background and guess are used at each outer iteration to compute the $\delta \overline{\mathbf{x}}^b_k$ or $\delta \mathbf{v}^b_k$, using $\mathbf{B}_k^{-1}$:}
+ \end{center}
+\end{figure}
+
+\begin{figure}[H]
+ \begin{center}
+  \includegraphics[width=0.3\linewidth]{fig/std.png}
+  \caption{\label{fig02} Illustrative workflow of the standard method. The potential guess inconsistency of the "standard" method comes from the fork in the use of the minimization output, to compute the full resolution guess and the first term of the right-hand side independently. If the correct formula is not used, then a guess inconsistency can arise.}
+ \end{center}
+\end{figure}
+
+\begin{figure}[H]
+ \begin{center}
+  \includegraphics[width=0.3\linewidth]{fig/cst.png}
+  \caption{\label{fig03} Illustrative workflow of the consistent method. Because of it closed cycle form (no fork), the "consistent" method ensures the guess consistency, without requiering $\mathbf{B}_k^{-1}$.}
+ \end{center}
+\end{figure}
+
+In order to illustrate the differences arising between the three methods due to the guess consistency, we have compared the results obtained with all the methods on a toy problem detailed in the next section.
 
 %---------------------------------------------------------------------------------
 \section{Methodology and results}
-Show the quadratc cost function (obs and background) + tables
+
+\subsection{Methodology}
+In this section we illustrate the differences arising between the three above-mentionned methods related to the guess consistency. To do so, we have built a bidimensional toy problem as follows:
+\begin{itemize}
+ \item We consider periodic domain composed of bidimensional square grids with $N_x=101$ x-coordinates and $N_y=101$ y-coordinates (leading to a total of $m = N_x \times N_y$ points) and assume that this resolution corresponds to the full resolution of our prolem (e.g. this resolution corresponds to the last iteration $k=K$ of our multi-incremental multi-resolution scheme).
+ \item A $\mathbf{B}$ matrix is introduced with gaussian spectral variances defined as:
+ \begin{align}
+  \mathbf{B_{k,l}} = e^{-2((k^2 + l^2)\pi L_b)^2}, 
+ \end{align}
+ where $k \in [0:N_x/2]$, $l \in [-N_y/2:N_y/2]$ are the accessible wave numbers and $L_b$ is a correlation lenghtscale.
+ We also define its grid point variance as:
+ \begin{align}
+ \mathbf{B_{i,j}} = 1 + \sigma^b \sin(2\pi x_i) \sin(2\pi y_j),  
+ \end{align}
+where $\sigma^b$ can be modified, $x_i$ is the $i^{th}$ x-coordinate of the grid, and $y_j$ is the $j^{th}$ y-coordinate of the grid.
+ \item A full resolution truth state $\mathbf{x^t}$ is defined on this grid by applying the square root of $\mathbf{B}$ (denoted $\mathbf{U}$) on a random field $\nu^{t}$ with normal distribution: (NB: I do not remember why is there $x^t = 1+x^t$ in the code? - Find a way to write the identity operator):
+ \begin{align}
+ \mathbf{x}^t = 1_m + \mathbf{U}\nu^{t}.
+ \end{align}
+ \item A full resolution background state is defined in same manner with a different random field $\nu^{b}$ (NB: idem for this):
+ \begin{align}
+ \mathbf{x}_b=\mathbf{x}^t + \mathbf{U}\nu^{b}.
+ \end{align}
+ \item In order to have the simpler problem, the observation operator is taken to be the identity. We also introduce $p$ observation points that are not necessarily on a grid point: (NB: we do not discuss about the cubic version ?)
+ \begin{align}
+  \mathcal{H}\mathbf{x} = \mathbf{x}. 
+ \end{align}
+ \item And finally the observation error covariance matrix $\mathbf{R} \in \mathbb{R}^{p \times p}$ is simply defined as:
+ \begin{align}
+ \mathbf{R}_{i,j} = \sigma^o.
+ \end{align}
+\end{itemize}
+
+In order to illustrate the differences between the different cases we have mentioned, we applied a multi-incremental multi-resolution scheme using the three methods as well as different interpolators. The spectral decomposition is an orthogonal operator, which can be associated with a zero padding operator to build a transitive interpolator. It should be noted that usual grid-points interpolators like (bi-)linear and nearest-neighbor interpolators are not transitive in general. An important exception is the (bi-)linear interpolator when coarse grid points are colocated with fine grid points.
+
+\subsection{Results}
+As an illustrative case, we have choosen 
+NB:Show the quadratic cost function (obs and background) + tables
 
 %---------------------------------------------------------------------------------
 
@@ -390,7 +494,7 @@ TEXT
 
 \appendix
 \section{Equivalence between preconditionners}
-Another precondi technique consists in defining a new variable $\delta \overline{\mathbf{x}}_k = \mathbf{B}_k^{-1} \delta \mathbf{x}_k$, where $\delta \mathbf{x}_k$ is the state model increment of iteration $k$ of a Gauss-Newton algorithm, and $\mathbf{B_k}$ is the model error covariance matrix, so that the linear system to solve can be written as $\mathbf{A}^{\overline{\mathbf{x}}}_k \delta \overline{\mathbf{x}}^a_k = \mathbf{b}^{\overline{\mathbf{x}}}_k$, $\delta \overline{\mathbf{x}}^a_k$ being the preconditionned analysis increment, and with $\mathbf{A}^{\overline{\mathbf{x}}}_k = \mathbf{I}_n + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{B}_k$ and the right hand side $\mathbf{b}^{\overline{\mathbf{x}}}_k =  \delta \overline{\mathbf{x}}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k$, where $\mathbf{R}_k$ is the observation error covariance matrix, $\mathbf{H}_k$ is the observation operator linearized around a guess state, and $\mathbf{d_k}$ is the innovation vector \cite{selime}\cite{dereber}. 
+Another precondi technique consists in defining a new variable $\delta \overline{\mathbf{x}}_k = \mathbf{B}_k^{-1} \delta \mathbf{x}_k$, where $\delta \mathbf{x}_k$ is the state model increment of iteration $k$ of a Gauss-Newton algorithm, and $\mathbf{B_k}$ is the model error covariance matrix, so that the linear system to solve can be written as $\mathbf{A}^{\overline{\mathbf{x}}}_k \delta \overline{\mathbf{x}}^a_k = \mathbf{b}^{\overline{\mathbf{x}}}_k$, $\delta \overline{\mathbf{x}}^a_k$ being the preconditionned analysis increment, and with $\mathbf{A}^{\overline{\mathbf{x}}}_k = \mathbf{I}_n + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{B}_k$ and the right hand side $\mathbf{b}^{\overline{\mathbf{x}}}_k =  \delta \overline{\mathbf{x}}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k$, where $\mathbf{R}_k$ is the observation error covariance matrix, $\mathbf{H}_k$ is the observation operator linearized around a guess state, and $\mathbf{d_k}$ is the innovation vector. 
 \begin{align}
  \quad \textrm{and} \quad \delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \delta \mathbf{v}^a_i .
 \label{eq:inc_recur}
@@ -412,7 +516,7 @@ With the full $\mathbf{B}$ preconditioning:
 If $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$, equation \eqref{eq:back_inc_B} cannot be used consistently.
 
 \begin{align}
-\label{eq:back_inc_B_diff}
+\label{eq:back_inc_B_diff2}
 \delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i,
 \end{align}
 
@@ -422,7 +526,7 @@ std method:
 \boxed{\delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i}
 \end{align}
 
-Comparing equations \eqref{eq:back_inc_Bvar} and \eqref{eq:correct_dxb_2}, the guess consistency is maintained if:
+Comparing equations \eqref{eq:back_inc_Bvar}, the guess consistency is maintained if:
 \begin{align}
 \label{eq:general_condition_B}
 & \mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i \nonumber \\
