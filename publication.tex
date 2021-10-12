@@ -320,7 +320,7 @@ In the "theoretical" method, one assumes that $\mathbf{B}_k^{-1}$ is available a
 In the "standard" method, which is currently used in operational multi-incremental multi-resolution schemes, $\mathbf{B}_k^{-1}$ is not available and the first term of the right-hand side is computed separately, using transformed versions of equation \eqref{eq:back_inc_U} with appropriate interpolations:
 \begin{align}
 \label{eq:back_inc_Uvar}
-\delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i
+\delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i.
 \end{align}
 This additional constraint imposes a unique expression for the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$, if the guess consistency has to be maintained.
 
@@ -342,9 +342,9 @@ This result can be introduced into equation \eqref{eq:correct_dvb} to get the ba
 Comparing equations \eqref{eq:back_inc_Uvar} and \eqref{eq:correct_dvb_2}, the guess consistency is maintained if:
 \begin{align}
 \label{eq:general_condition_U}
-& \mathbf{U}_k^\mathrm{T} \mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i \nonumber \\
-\Leftrightarrow \ & \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i \nonumber \\
-\Leftrightarrow \ & \boxed{\mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_{k-1} = \mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i}
+& \mathbf{U}_k^\mathrm{T} \mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i, \nonumber \\
+\Leftrightarrow \ & \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i, \nonumber \\
+\Leftrightarrow \ & \boxed{\mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_{k-1} = \mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i}.
 \end{align}
 To understand this result, one needs to distinguish between two cases according to the number of outer loops to be realized: if $K=2$, equation \eqref{eq:general_condition_U} corresponding to the last iteration $k=K=2$ becomes $\delta \mathbf{x}^{a+}_1 = \mathbf{U}_2 \mathbf{T}^\mathbf{v}_{1 \rightarrow 2} \delta \mathbf{v}^a_1$ leading to an explicit expression of $\delta \mathbf{x}^{a+}_1$. In the case where $K>2$, equation \eqref{eq:general_condition_U} can be solved explicitly if $\mathbf{T}^\mathbf{x}_{K \rightarrow k}$ has a known right-inverse denoted $\left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right}$, such that $\mathbf{T}^\mathbf{x}_{K \rightarrow k} \left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right} = \mathbf{I}_{n_k}$.
 In this case, equation \eqref{eq:general_condition_U} becomes:
@@ -425,10 +425,104 @@ The figure (\ref{fig01}), (\ref{fig02}) and (\ref{fig03}) respectively illustrat
  \end{center}
 \end{figure}
 
-In order to illustrate the differences arising between the three methods due to the guess consistency, we have compared the results obtained with all the methods on a toy problem detailed in the next section.
+The fork in the "standard" method using the analysis of iteration $k$ to compute separately the background increment and the guess of iteration $k+1$ is responsible of the potential inconsistency of the guess. 
 
+The differences between the three methods coming from this guess inconsistency are illustraed using a toy problem which is describe in section \ref{sec:res}.
+
+Another important problem is the equivalence between the square root $\mathbf{B}$ preconditionning and the full $\mathbf{B}$ preconditionning which may also be used for computationnal efficiency. This equivalence in the case of a multi-incremental multi-resolution framework is discussed in the following section.
+
+
+\section{Equivalence between preconditionners}
+Another preconding technique consists in defining a new variable $\delta \overline{\mathbf{x}}_k = \mathbf{B}_k^{-1} \delta \mathbf{x}_k$ so that the linear system to solve can be written as:
+\begin{align}
+ \mathbf{A}^{\overline{\mathbf{x}}}_k \delta \overline{\mathbf{x}}^a_k = \mathbf{b}^{\overline{\mathbf{x}}}_k,
+\end{align}
+ $\delta \overline{\mathbf{x}}^a_k$ being the preconditionned analysis increment, and with:
+ \begin{align}
+  \mathbf{A}^{\overline{\mathbf{x}}}_k = \mathbf{I}_n + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{B}_k,
+ \end{align}
+ and the right hand side now written as:
+ \begin{align}
+  \mathbf{b}^{\overline{\mathbf{x}}}_k =  \delta \overline{\mathbf{x}}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k.
+ \end{align}
+ 
+An equivalent form of equation \eqref{eq:back_inc_B} can be found by applying $\mathbf{B}^{-1}$ on both side of equation \eqref{eq:back_inc} to express the so preconditionned background increment as:
+\begin{align}
+\label{eq:back_inc_B}
+\delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \delta \overline{\mathbf{x}}^a_i.
+\end{align}
+In the same way as for the square root $\mathbf{B}$ preconditionning, if the $\mathbf{B}$ matrix changes between the outer loops and so depends on $k$, one can write:
+\begin{align}
+\label{eq:back_inc_B_diff}
+\delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i \nonumber \\
+& = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i
+\end{align}
+and similarly if $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$, equation \eqref{eq:back_inc_B} cannot be used consistently.
+
+In the "standard" method using this preconditionner, one can write equivalent forms of equations \eqref{eq:back_inc_Uvar} and \eqref{eq:correct_dxb_2}:
+\begin{align}
+\label{eq:back_inc_Bvar}
+\delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i,
+\end{align}
+\begin{align}
+\label{eq:correct_dxb_2}
+\delta \overline{\mathbf{x}}^b_k & = -\mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i.
+\end{align}
+
+
+Now comparing equations \eqref{eq:back_inc_Bvar} and \eqref{eq:correct_dxb_2}, the guess consistency is maintained if:
+\begin{align}
+\label{eq:general_condition_B}
+& \mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i, \nonumber \\
+\Leftrightarrow \ & \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i, \nonumber \\
+ \Leftrightarrow \ & \boxed{\mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_{k-1} =  \mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i}.
+\end{align}
+
+
+\begin{align}
+\label{eq:general_condition_B_K2}
+\delta \mathbf{x}^{a+}_1 =  \mathbf{B}_2 \mathbf{T}^\mathbf{x}_{1 \rightarrow 2} \delta \overline{\mathbf{x}}^a_1
+\end{align}
+and
+
+\begin{align}
+\label{eq:general_condition_B_right_inverse}
+\delta \mathbf{x}^{a+}_{k-1} =  \left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)
+\end{align}
+and
+
+\begin{align}
+\label{eq:transitive_condition_B}
+\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)}
+\end{align}
+Similarly in control space:
+
+\begin{align}
+\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \delta \overline{\mathbf{x}}^a_{k-1} + \mathbf{T}^\mathbf{x}_{k \rightarrow K} \sum_{i=1}^{k-2} \left(\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_i\right)
+\end{align}
+If the $\mathbf{B}$ family is projective, then:
+\begin{align}
+\mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \mathbf{B}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1}
+\end{align}
+so a simplified expression of $\delta \mathbf{x}^{a+}_{k-1}$ is:
+\begin{align}
+\label{eq:projective_condition_B}
+\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1} \delta \overline{\mathbf{x}}^a_{k-1}}
+\end{align}
+that verifies \eqref{eq:transitive_condition_B} since both terms inside the summation cancel each other:
+\begin{align}
+\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_i & = \mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k}  \mathbf{T}^\mathbf{x}_{i \rightarrow K} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \nonumber \\
+& = \left(\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} - \mathbf{T}^\mathbf{x}_{i \rightarrow k} \mathbf{B}_i \right) \delta \overline{\mathbf{x}}^a_i \nonumber \\
+& = 0
+\end{align}
+
+\begin{align}
+\label{eq:alternative_B}
+\delta \mathbf{x}^b_k & = \mathbf{B}_k \delta \overline{\mathbf{x}}^b_k
+\end{align}
 %---------------------------------------------------------------------------------
 \section{Methodology and results}
+In order to illustrate the differences arising between the three methods due to the guess consistency, we have compared the results obtained with all the methods on a toy problem detailed in the present section.
 
 \subsection{Methodology}
 In this section we illustrate the differences arising between the three above-mentionned methods related to the guess consistency. To do so, we have built a bidimensional toy problem as follows:
@@ -493,92 +587,8 @@ TEXT
 
 
 \appendix
-\section{Equivalence between preconditionners}
-Another precondi technique consists in defining a new variable $\delta \overline{\mathbf{x}}_k = \mathbf{B}_k^{-1} \delta \mathbf{x}_k$, where $\delta \mathbf{x}_k$ is the state model increment of iteration $k$ of a Gauss-Newton algorithm, and $\mathbf{B_k}$ is the model error covariance matrix, so that the linear system to solve can be written as $\mathbf{A}^{\overline{\mathbf{x}}}_k \delta \overline{\mathbf{x}}^a_k = \mathbf{b}^{\overline{\mathbf{x}}}_k$, $\delta \overline{\mathbf{x}}^a_k$ being the preconditionned analysis increment, and with $\mathbf{A}^{\overline{\mathbf{x}}}_k = \mathbf{I}_n + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{B}_k$ and the right hand side $\mathbf{b}^{\overline{\mathbf{x}}}_k =  \delta \overline{\mathbf{x}}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k$, where $\mathbf{R}_k$ is the observation error covariance matrix, $\mathbf{H}_k$ is the observation operator linearized around a guess state, and $\mathbf{d_k}$ is the innovation vector. 
-\begin{align}
- \quad \textrm{and} \quad \delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \delta \mathbf{v}^a_i .
-\label{eq:inc_recur}
-\end{align}
 
 
-With the full $\mathbf{B}$ preconditioning, $\mathbf{B}^{-1}$ can be applied on both side of equation \eqref{eq:back_inc}:
-\begin{align}
-\label{eq:back_inc_B}
-\boxed{\delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \delta \overline{\mathbf{x}}^a_i}
-\end{align}
-
-With the full $\mathbf{B}$ preconditioning:
-\begin{align}
-\label{eq:back_inc_B_diff}
-\delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i \nonumber \\
-& = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i
-\end{align}
-If $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$, equation \eqref{eq:back_inc_B} cannot be used consistently.
-
-\begin{align}
-\label{eq:back_inc_B_diff2}
-\delta \overline{\mathbf{x}}^b_k & = - \mathbf{B}_k^{-1}\sum_{i=1}^{k-1} \delta \mathbf{x}^a_i = - \sum_{i=1}^{k-1} \mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i,
-\end{align}
-
-std method:
-\begin{align}
-\label{eq:back_inc_Bvar}
-\boxed{\delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i}
-\end{align}
-
-Comparing equations \eqref{eq:back_inc_Bvar}, the guess consistency is maintained if:
-\begin{align}
-\label{eq:general_condition_B}
-& \mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i \nonumber \\
-\Leftrightarrow \ & \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i \nonumber \\
- \Leftrightarrow \ & \boxed{\mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_{k-1} =  \mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i}
-\end{align}
-
-
-\begin{align}
-\label{eq:general_condition_B_K2}
-\delta \mathbf{x}^{a+}_1 =  \mathbf{B}_2 \mathbf{T}^\mathbf{x}_{1 \rightarrow 2} \delta \overline{\mathbf{x}}^a_1
-\end{align}
-and
-
-\begin{align}
-\label{eq:general_condition_B_right_inverse}
-\delta \mathbf{x}^{a+}_{k-1} =  \left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)
-\end{align}
-and
-
-\begin{align}
-\label{eq:transitive_condition_B}
-\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)}
-\end{align}
-Similarly in control space:
-
-\begin{align}
-\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \delta \overline{\mathbf{x}}^a_{k-1} + \mathbf{T}^\mathbf{x}_{k \rightarrow K} \sum_{i=1}^{k-2} \left(\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_i\right)
-\end{align}
-If the $\mathbf{B}$ family is projective, then:
-\begin{align}
-\mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \mathbf{B}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1}
-\end{align}
-so a simplified expression of $\delta \mathbf{x}^{a+}_{k-1}$ is:
-\begin{align}
-\label{eq:projective_condition_B}
-\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1} \delta \overline{\mathbf{x}}^a_{k-1}}
-\end{align}
-that verifies \eqref{eq:transitive_condition_B} since both terms inside the summation cancel each other:
-\begin{align}
-\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_i & = \mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k}  \mathbf{T}^\mathbf{x}_{i \rightarrow K} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \nonumber \\
-& = \left(\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} - \mathbf{T}^\mathbf{x}_{i \rightarrow k} \mathbf{B}_i \right) \delta \overline{\mathbf{x}}^a_i \nonumber \\
-& = 0
-\end{align}
-
-\begin{align}
-\label{eq:alternative_B}
-\delta \mathbf{x}^b_k & = \mathbf{B}_k \delta \overline{\mathbf{x}}^b_k
-\end{align}
-or
-
-bibou
 
 \noappendix       %% use this to mark the end of the appendix section. Otherwise the figures might be numbered incorrectly (e.g. 10 instead of 1).
 
