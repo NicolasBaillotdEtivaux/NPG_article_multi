@@ -128,8 +128,7 @@
 
 \begin{abstract}
 Variational Data Assimilation (DA) schemes are often used to adress high dimensional non-linear problems in operational applications in the Numerical Wheather Prediction (NWP) domain. Because of the high computational cost of such minimization problems, various methods can be applied to improve the convergence at a reasonable numerical cost. One of these methods currently applied in operational DA schemes is the multi-incremental approach that consists in solving a succession of linearized versions of the original non-linear problem in several outer loops, by using well known algorithms to ensure the convergence of the linear problem at the inner loop level, and using the solution of the inner loops to update the problem at each outer loop. In order to save computational cost, the multi-incremental multi-resolution method consists in starting the minimization at a lower resolution than the original one, and increasing it at the outer loop level until the full resolution of the problem. In such a scheme, the way to compute the new guess at each outer loop from the previous iterations is crucial. We adress the question of the guess consistency in the standard method currently used in operational systems, and also present a new method which ensures the guess consistency and need simpler calculations. 
-
-%On the other hand, the conditionning of NWP problems is often poor, and one can use preconditionning techniques in order to improve the convergence. We have applied the multi-incremental multi-resolution scheme to a simplified problem in order to study the equivalence of two well known preconditionnings ("full" $\mathbf{B}$ or "square root" $\mathbf{B}$) in such a scheme and also present a new alternative method to update the problem at the outer loop level. We illustrate the differences with the standard method currently used and compare those two methods to the theoretical result. Some equivalence conditions between the updating methods and the two preconditionnings are drawn according to the way the resolution change is realised at the outer loop level.
+On the other hand, the conditionning of NWP problems is often poor, and one can use preconditionning techniques in order to improve the convergence. We have applied the multi-incremental multi-resolution scheme to a simplified problem in order to study the guess consistency as well as the equivalence between two well known preconditionnings ("full" $\mathbf{B}$ or "square root" $\mathbf{B}$) in such a scheme. Some equivalence conditions between the updating methods and the two preconditionnings are drawn according to the way the resolution change is realised at the outer loop level.
 \end{abstract}
 
 
@@ -150,12 +149,20 @@ In Data Assimilation (DA), one wants to minimize the following non linear cost f
 where $\mathbf{x} \in \mathbb{R}^n$ is the state in model space of size $n$, $\mathbf{x}^b \in \mathbb{R}^n$ is the background state, $\mathbf{B} \in \mathbb{R}^{n \times n}$ is the background error covariance matrix, $\mathbf{y}^o \in \mathbb{R}^p$ is the observation vector  in observation space of size $p$ (note that in general $p<n$), $\mathbf{R} \in \mathbb{R}^{p \times p}$ is the observation error covariance matrix, and $\mathcal{H} : \mathbb{R}^n \rightarrow \mathbb{R}^p$ is the observation operator which maps the model space to the observation space. 
 
 \subsection{Problem linearization}
-In general the observation operator is nonlinear and can be linearized around a guess state $\mathbf{x}^g_k \in \mathbb{R}^n$ so that: $\mathcal{H}(\mathbf{x}) \approx \mathcal{H}(\mathbf{x}^g_k) + \mathbf{H}_k \delta \mathbf{x}_k$ for $\mathbf{x} \approx \mathbf{x}^g_k$, defining the increment $\delta \mathbf{x}_k =  \mathbf{x}-\mathbf{x}^g_k$, and where $\mathbf{H}_k \in \mathbb{R}^{p \times m}$ is the observation operator linearized around the guess state: $H_{k,ij} = \left.\frac{\partial \mathcal{H}_i}{\partial x_j}\right|_{\mathbf{x} = \mathbf{x}^g_k}$. Instead of minimizing the full cost function $\mathcal{J}(\mathbf{x})$, it is now possible to minimize successive quadratic approximations around successive guess states:
+In general the observation operator is nonlinear and can be linearized around a guess state $\mathbf{x}^g_k \in \mathbb{R}^n$ so that: 
+\begin{align}
+ \mathcal{H}(\mathbf{x}) \approx \mathcal{H}(\mathbf{x}^g_k) + \mathbf{H}_k \delta \mathbf{x}_k \quad \textrm{for}\ \mathbf{x} \approx \mathbf{x}^g_k,
+\end{align}
+defining the increment $\delta \mathbf{x}_k =  \mathbf{x}-\mathbf{x}^g_k$, and where $\mathbf{H}_k \in \mathbb{R}^{p \times m}$ is the observation operator linearized around the guess state: 
+\begin{align}
+ \mathbf{H}_{k,ij} = \left.\frac{\partial \mathcal{H}_i}{\partial x_j}\right|_{\mathbf{x} = \mathbf{x}^g_k}.
+\end{align}
+Instead of minimizing the full cost function $\mathcal{J}(\mathbf{x})$, it is now possible to minimize successive quadratic approximations around successive guess states:
 \begin{align}
 \label{eq:cost_quad}
 J \left(\delta \mathbf{x}_k\right) = \frac{1}{2} \left(\delta \mathbf{x}_k-\delta \mathbf{x}^b_k\right)^\mathrm{T} \mathbf{B}^{-1} \left(\delta \mathbf{x}_k-\delta \mathbf{x}^b_k\right) + \frac{1}{2} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}_k\right)^\mathrm{T} \mathbf{R}^{-1} \left(\mathbf{d}_k - \mathbf{H}_k \delta \mathbf{x}_k\right)
 \end{align}
-where $k$ indicates the $k^{th}$ iteration (hereafter these iterations are called "outer loops" since the minimization of the successive approximations are realized using well known iterative solvers such as lanczos alorithms. We call "inner loops" the iterations of these algorithms), $\delta \mathbf{x}^b_k = \mathbf{x}^b - \mathbf{x}^g_k$ is the background increment and $\mathbf{d}_k = \mathbf{y}^o - \mathcal{H}(\mathbf{x}^g_k)$ is the innovation vector.\\
+where $k$ indicates the $k^{th}$ iteration (hereafter these iterations are called "outer loops" since the minimization of the successive approximations are realized using well known iterative solvers such as Lanczos alorithms. We call "inner loops" the iterations of these algorithms), $\delta \mathbf{x}^b_k = \mathbf{x}^b - \mathbf{x}^g_k$ is the background increment and $\mathbf{d}_k = \mathbf{y}^o - \mathcal{H}(\mathbf{x}^g_k)$ is the innovation vector.\\
 
 Setting the gradient of $J(\delta \mathbf{x}_k)$ to zero gives the analysis increment $\delta \mathbf{x}^a_k$:
 \begin{align}
@@ -164,12 +171,12 @@ Setting the gradient of $J(\delta \mathbf{x}_k)$ to zero gives the analysis incr
 \Leftrightarrow & \ \left(\mathbf{B}^{-1} + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k\right) \delta \mathbf{x}^a_k = \mathbf{B}^{-1} \delta \mathbf{x}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k \nonumber \\
 \Leftrightarrow & \ \boxed{\mathbf{A}^\mathbf{x}_k \delta \mathbf{x}^a_k = \mathbf{b}^\mathbf{x}_k}
 \end{align}
-with $\mathbf{A}^\mathbf{x}_k \in \mathbb{R}^{n \times n}$ and the right hand side $\mathbf{b}^\mathbf{x}_k \in \mathbb{R}^{n}$ defined as:
+where $\mathbf{A}^\mathbf{x}_k \in \mathbb{R}^{n \times n}$ and the right hand side $\mathbf{b}^\mathbf{x}_k \in \mathbb{R}^{n}$ are defined as:
 \begin{align}
 \mathbf{A}^\mathbf{x}_k & = \mathbf{B}^{-1} + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k , \\
 \mathbf{b}^\mathbf{x}_k & = \mathbf{B}^{-1} \delta \mathbf{x}^b_k + \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k .
 \end{align}
-The problem can now be solved using Gauss-Newton algorithm. It is very common to use the background state as a guess for the first iteration $k=1$ ($\mathbf{x}^g_1 = \mathbf{x}^b$), and then for $k>1$, the analysis of the previous iteration is used to define the guess ($\mathbf{x}^g_k = \mathbf{x}^a_{k-1}$). Thus, the first background increment is $\delta \mathbf{x}^b_1 = \mathbf{x}^g_1 - \mathbf{x}^b = 0$, and the following ones can be computed as:
+The problem can now be solved in this form using Gauss-Newton algorithm. It is very common to use the background state as a guess for the first iteration $k=1$: $\mathbf{x}^g_1 = \mathbf{x}^b$. Then for $k>1$, the analysis of the previous iteration is used to define the guess: $\mathbf{x}^g_k = \mathbf{x}^a_{k-1}$. Thus, the first background increment is $\delta \mathbf{x}^b_1 = \mathbf{x}^g_1 - \mathbf{x}^b = 0$, and the following ones can be computed as:
 \begin{align}
 \delta \mathbf{x}^b_k & = \mathbf{x}^b - \mathbf{x}^g_k, \nonumber \\
 & = \mathbf{x}^b - \mathbf{x}^a_{k-1}, \nonumber \\
@@ -191,7 +198,7 @@ The $\mathbf{B}$ matrix have the important property of being positive definite, 
 \mathbf{A}^\mathbf{v}_k & = \mathbf{I}_m + \mathbf{U}^\mathrm{T} \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{H}_k \mathbf{U},\\
 \mathbf{b}^\mathbf{v}_k & = \delta \mathbf{v}^b_k + \mathbf{U}^\mathrm{T} \mathbf{H}_k^\mathrm{T} \mathbf{R}^{-1} \mathbf{d}_k.
 \end{align}
-Using this technique allows to recursively solve the system without using $\mathbf{B}^{-1}$ which is, in general, not available due to its high dimension, even if it is needed in general to compute the right-hand side $\mathbf{b}^\mathbf{v}_k$: $\mathbf{U}^\mathrm{T} \mathbf{B}^{-1}$ can be applied on both side of equation \eqref{eq:back_inc}, leading to:
+Using this technique allows to recursively solve the system without using $\mathbf{B}^{-1}$ which is, in general, not available due to its high dimension, even if it is needed in general to compute the right-hand side $\mathbf{b}^\mathbf{v}_k$. With this preconditionning, $\mathbf{U}^\mathrm{T} \mathbf{B}^{-1}$ can be applied on both side of equation \eqref{eq:back_inc}, leading to:
 \begin{align}
 \label{eq:back_inc_U}
 \delta \mathbf{v}^b_k = - \sum_{i=1}^{k-1} \delta \mathbf{v}^a_i,
@@ -200,13 +207,15 @@ which can be used to compute the right hand side $\mathbf{b}^\mathbf{v}_k$ witho
 
 
 \subsection{Changing the resolution between the outer loops}
-In special cases, the background error covariance matrix can be updated between outer iterations defining $\mathbf{B}_k$, and its square-root $\mathbf{U}_k$. In this case, it is not systematically possible to compute the background increment without using $\mathbf{B}^{-1}$. One example of such a scheme is the multi-incremental multi-resolution approach, in which the resolution increases at each outer loop for computational efficiency, and therefore, the $\mathbf{B}$ matrix depends on $k$. In this case, Equation \eqref{eq:back_inc_U} is valid and one can obtain the background increment as follows:
+In special cases, the background error covariance matrix can be updated between outer iterations defining $\mathbf{B}_k$ matrix at iteration $k$, and its square-root $\mathbf{U}_k$. In this case, it is not systematically possible to compute the background increment without using $\mathbf{B}^{-1}$. One example of such a scheme is the multi-incremental multi-resolution approach, in which the resolution increases at each outer loop for computational efficiency, and therefore, the $\mathbf{B}$ matrix depends on $k$. In this case, Equation \eqref{eq:back_inc_U} is valid and one can obtain the background increment as follows:
 \begin{align}
 \label{eq:back_inc_U_diff}
 \delta \mathbf{v}^b_k & = - \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \sum_{i=1}^{k-1} \delta \mathbf{x}^a_i, \nonumber \\
 & = - \sum_{i=1}^{k-1} \mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i.
 \end{align}
-It should be emphasized that if $\mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i \ne \delta \mathbf{v}^a_i$, equation \eqref{eq:back_inc_U} cannot be used consistently. To realize the change of resolution, one needs to use interpolators in model space $\mathbf{T}^\mathbf{x}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ and in control space $\mathbf{T}^\mathbf{v}_{i \rightarrow k} \in \mathbb{R}^{m_k \times m_i}$ from the resolution $\mathcal{R}_i$ to $\mathcal{R}_k$, where $n_k$ and $m_k$ respectively denotes the size of the model space and the control space.
+It should be emphasized that if $\mathbf{U}_k^\mathrm{T} \mathbf{B}_k^{-1} \mathbf{U}_i \delta \mathbf{v}^a_i \ne \delta \mathbf{v}^a_i$, equation \eqref{eq:back_inc_U} cannot be used consistently.\\ 
+
+To realize the change of resolution, one needs to use interpolators in model space $\mathbf{T}^\mathbf{x}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ and in control space $\mathbf{T}^\mathbf{v}_{i \rightarrow k} \in \mathbb{R}^{m_k \times m_i}$ from the resolution $\mathcal{R}_i$ to $\mathcal{R}_k$, where $n_k$ and $m_k$ respectively denotes the size of the model space and the control space.
 For clarity, we now assume that the resolutions are stricly increasing: for $i < k$, $n_i < n_k$ and $m_i < m_k$, and that the full resolution is obtained at the last iteration $K$. We define two interpolators from resolution $\mathcal{R}_i$ to resolution $\mathcal{R}_k$:
 \begin{itemize}
 \item $\mathbf{T}^\mathbf{x}_{i \rightarrow k} \in \mathbb{R}^{n_k \times n_i}$ in model space,
@@ -274,7 +283,7 @@ It is easy to check the three required properties:
 \end{align}
 \end{itemize}
 
-Associated to the various resolution, we qualify a $\mathbf{B}$ family as "projective" if the low-resolution members can be defined as a projection of the high-resolution one, using transitive interpolators. For $n_i < n_k$, that would mean:
+Associated to the various resolutions, we qualify a $\mathbf{B}$ matrix family as "projective" if the low-resolution members can be defined as a projection of the high-resolution ones, using transitive interpolators. For $n_i < n_k$, that would mean:
 \begin{align}
 \label{eq:projective_definition_U}
 \mathbf{U}_k \mathbf{T}^\mathbf{v}_{i \rightarrow k} = \mathbf{T}^\mathbf{x}_{i \rightarrow k} \mathbf{U}_i.
@@ -311,10 +320,10 @@ The way the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$
 & = \mathbf{U}_k^\mathrm{T} \mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \left(\mathbf{x}^b - \mathbf{x}^{g+}_k\right)
 \end{align}
 \end{itemize}
-The question of the consistency between these two occurences of the guess state in the minimization is crucial and is detailed in the following sections.
+The question of the consistency between these two occurences of the guess state in the minimization is crucial and is discussed in the following sections. We compare different methods to compute the guess and present a new method ensuring its consistency.
 
 \subsection{Theoretical method}
-In the "theoretical" method, one assumes that $\mathbf{B}_k^{-1}$ is available and can be used to compute the increment $\delta \mathbf{v}^b_k$ explicitly from $\mathbf{x}^{g+}_k$ using equations \eqref{eq:correct_dvb}. There is no requirement on the expression of the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$.
+In the "theoretical" method, one assumes that $\mathbf{B}_k^{-1}$ is available and can be used to compute the increment $\delta \mathbf{v}^b_k$ explicitly from $\mathbf{x}^{g+}_k$ using equations \eqref{eq:correct_dvb}. In this method, there is no requirement on the expression of the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$.
 
 \subsection{Standard method}
 In the "standard" method, which is currently used in operational multi-incremental multi-resolution schemes, $\mathbf{B}_k^{-1}$ is not available and the first term of the right-hand side is computed separately, using transformed versions of equation \eqref{eq:back_inc_U} with appropriate interpolations:
@@ -352,7 +361,15 @@ In this case, equation \eqref{eq:general_condition_U} becomes:
 \label{eq:general_condition_U_right_inverse}
 \delta \mathbf{x}^{a+}_{k-1} = \left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right}  \left(\mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)
 \end{align}
-Not that if this right-inverse exists, its unicity depends on the rank of the kernel of $\mathbf{T}^\mathbf{x}_{K \rightarrow k}$: if $\delta \mathbf{x}^{a+}_{k-1}$ is a solution of equation \eqref{eq:general_condition_U} and $\mathbf{u} \in \textrm{Ker}\left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)$, then $\left(\delta \mathbf{x}^{a+}_{k-1}+\mathbf{u}\right)$ is also a solution.
+Note that if this right-inverse exists, its unicity depends on the rank of the kernel of $\mathbf{T}^\mathbf{x}_{K \rightarrow k}$: if $\delta \mathbf{x}^{a+}_{k-1}$ is a solution of equation \eqref{eq:general_condition_U} and $\mathbf{u} \in \textrm{Ker}\left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)$, then $\left(\delta \mathbf{x}^{a+}_{k-1}+\mathbf{u}\right)$ is also a solution.
+
+\subsubsection{Complete standard method}
+If one uses transitive interpolators, the right inverse of $\mathbf{T}^\mathbf{x}_{K \rightarrow k}$ exists and is defined as $\mathbf{T}^\mathbf{x}_{k \rightarrow K}$, so that:
+\begin{align}
+\label{eq:transitive_condition_U}
+\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \left(\mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)}
+\end{align}
+Equation \eqref{eq:transitive_condition_U} estimates $\delta \mathbf{x}^{a+}_{k-1}$ using results from outer iterations 1 to $k-1$, not outer iteration $k-1$ only.  Hereafter, this expression is refered to as "complete expression".
 
 \subsubsection{Simplified standard method}
 The right-hand side of equation \eqref{eq:transitive_condition_U} can be split in order to extract the term coming from outer iteration $k-1$:
@@ -361,7 +378,8 @@ The right-hand side of equation \eqref{eq:transitive_condition_U} can be split i
 \end{align}
 If the $\mathbf{B}$ family is projective, then:
 \begin{align}
-\mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{U}_k \mathbf{T}^\mathbf{v}_{k-1 \rightarrow k} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \mathbf{U}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{U}_{k-1}
+\mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{U}_k \mathbf{T}^\mathbf{v}_{k-1 \rightarrow k} & = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \mathbf{U}_{k-1} \nonumber \\
+& = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{U}_{k-1}
 \end{align}
 so a simplified expression of $\delta \mathbf{x}^{a+}_{k-1}$ is:
 \begin{align}
@@ -376,13 +394,7 @@ that verifies \eqref{eq:transitive_condition_U} since both terms inside the summ
 \end{align}
 Equation \eqref{eq:projective_condition_U} now estimates $\delta \mathbf{x}^{a+}_{k-1}$ using results from outer iterations $k-1$ only and this expression is refered to as "simplified expression" in the following.
 
-\subsubsection{Corrected standard method}
-If one uses transitive interpolators, the right inverse of $\mathbf{T}^\mathbf{x}_{K \rightarrow k}$ exists and is defined as $\mathbf{T}^\mathbf{x}_{k \rightarrow K}$, so that:
-\begin{align}
-\label{eq:transitive_condition_U}
-\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \left(\mathbf{U}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{v}_{i \rightarrow k} \delta \mathbf{v}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)}
-\end{align}
-Equation \eqref{eq:transitive_condition_U} estimates $\delta \mathbf{x}^{a+}_{k-1}$ using results from outer iterations 1 to $k-1$, not outer iteration $k-1$ only.  Hereafter, this expression is refered to as "corrected expression".
+
 
 \subsection{Consitent method}
 An new alternative method in which the guess consistency is guaranteed can be defined. This method also have the advantage of requiring much more simpler calculations than the "standard" method and gives the same results. The basic idea is to reverse the order of computations: the first term of the right-hand side is computed first from equation \eqref{eq:back_inc_Uvar}, and then the background increment is given by:
@@ -399,8 +411,8 @@ ensuring its consistency.
 
 \subsection{Methods comparision}
 Guess consistency is always ensured for the "theoretical" and "consistent" methods. For the "standard" method, it is only ensured if one uses transitive interpolators, and the correct formula for the analysis increment at full resolution $\delta \mathbf{x}^{a+}_{k-1}$. In the general case, it depends whether equation \eqref{eq:general_condition_U} can be solved or not.
-In the general case, if a solution exists for the "standard" method, the same $\delta \mathbf{x}^{a+}_{k-1}$ can be used for the "theoretical" method and all methods give the same results. In the case where no solution can be found for the "standard" method, another expression is used for the "theoretical" one, which leads to different results from the "alternative" method.
-In the case of transitive interpolators, "standard" and "consistent" methods always give the same results and are in agreement with the "theoretical" method if the same expression is used for $\delta \mathbf{x}^{a+}_{k-1}$. The case of a projective $\mathbf{B}$ family is just a subcase of the transitive interpolators one, where the expression of $\delta \mathbf{x}^{a+}_{k-1}$ can be simplified for the "theoretical" and "standard" methods.
+In the general case, if a solution exists for the "standard" method, the same $\delta \mathbf{x}^{a+}_{k-1}$ is used in the "theoretical" method and all methods give the same results. In the case where no solution can be found for the "standard" method, another expression is used for the "theoretical" one, which leads to different results from the "consistent" method.
+In the case of transitive interpolators, "standard" and "consistent" methods always give the same results and are in agreement with the "theoretical" method if the same expression is used for $\delta \mathbf{x}^{a+}_{k-1}$. The case of a projective $\mathbf{B}$ family is just a subcase of transitive interpolators one, where the expression of $\delta \mathbf{x}^{a+}_{k-1}$ can be simplified for the "theoretical" and "standard" methods.
 
 The figure (\ref{fig01}), (\ref{fig02}) and (\ref{fig03}) respectively illustrate the workflow of the three methods.
 
@@ -433,6 +445,8 @@ Another important problem is the equivalence between the square root $\mathbf{B}
 
 
 \section{Equivalence between preconditionners}
+(NB: or "full B precontionning" - is it necessary to put the equations ? Maybe we can just say that the same steps can be realized with B.)
+
 Another preconding technique consists in defining a new variable $\delta \overline{\mathbf{x}}_k = \mathbf{B}_k^{-1} \delta \mathbf{x}_k$ so that the linear system to solve can be written as:
 \begin{align}
  \mathbf{A}^{\overline{\mathbf{x}}}_k \delta \overline{\mathbf{x}}^a_k = \mathbf{b}^{\overline{\mathbf{x}}}_k,
@@ -459,7 +473,7 @@ In the same way as for the square root $\mathbf{B}$ preconditionning, if the $\m
 \end{align}
 and similarly if $\mathbf{B}_k^{-1} \mathbf{B}_i \delta \overline{\mathbf{x}}^a_i \ne \delta \overline{\mathbf{x}}^a_i$, equation \eqref{eq:back_inc_B} cannot be used consistently.
 
-In the "standard" method using this preconditionner, one can write equivalent forms of equations \eqref{eq:back_inc_Uvar} and \eqref{eq:correct_dxb_2}:
+One can also write equivalent forms of equations \eqref{eq:back_inc_Uvar} and \eqref{eq:correct_dvb_2} using this preconditionner in the "standard" method:
 \begin{align}
 \label{eq:back_inc_Bvar}
 \delta \overline{\mathbf{x}}^b_k = - \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i,
@@ -468,8 +482,6 @@ In the "standard" method using this preconditionner, one can write equivalent fo
 \label{eq:correct_dxb_2}
 \delta \overline{\mathbf{x}}^b_k & = -\mathbf{B}^{-1}_k \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i.
 \end{align}
-
-
 Now comparing equations \eqref{eq:back_inc_Bvar} and \eqref{eq:correct_dxb_2}, the guess consistency is maintained if:
 \begin{align}
 \label{eq:general_condition_B}
@@ -477,34 +489,31 @@ Now comparing equations \eqref{eq:back_inc_Bvar} and \eqref{eq:correct_dxb_2}, t
 \Leftrightarrow \ & \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-1} \delta \mathbf{x}^{a+}_i = \mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i, \nonumber \\
  \Leftrightarrow \ & \boxed{\mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_{k-1} =  \mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i}.
 \end{align}
-
-
-\begin{align}
-\label{eq:general_condition_B_K2}
-\delta \mathbf{x}^{a+}_1 =  \mathbf{B}_2 \mathbf{T}^\mathbf{x}_{1 \rightarrow 2} \delta \overline{\mathbf{x}}^a_1
-\end{align}
-and
-
+Once again, one can write a complete "expression" of the full resolution analysis increment if a right inverse exists for the interpolation operator:
+%\begin{align}
+%\label{eq:general_condition_B_K2}
+%\delta \mathbf{x}^{a+}_1 =  \mathbf{B}_2 \mathbf{T}^\mathbf{x}_{1 \rightarrow 2} \delta \overline{\mathbf{x}}^a_1
+%\end{align}
 \begin{align}
 \label{eq:general_condition_B_right_inverse}
-\delta \mathbf{x}^{a+}_{k-1} =  \left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)
+\delta \mathbf{x}^{a+}_{k-1} =  \left(\mathbf{T}^\mathbf{x}_{K \rightarrow k}\right)^{-1}_\text{right} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right),
 \end{align}
-and
-
+leading to:
 \begin{align}
 \label{eq:transitive_condition_B}
-\boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right)}
+\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \left(\mathbf{B}_k \sum_{i=1}^{k-1} \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \sum_{i=1}^{k-2} \delta \mathbf{x}^{a+}_i\right),
 \end{align}
-Similarly in control space:
-
+in the case of transitive interpolators.
+The right-hand side of equation \eqref{eq:transitive_condition_B} can be split to extract the term coming from outer iteration $k-1$:
 \begin{align}
-\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \delta \overline{\mathbf{x}}^a_{k-1} + \mathbf{T}^\mathbf{x}_{k \rightarrow K} \sum_{i=1}^{k-2} \left(\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_i\right)
+\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \delta \overline{\mathbf{x}}^a_{k-1} + \mathbf{T}^\mathbf{x}_{k \rightarrow K} \sum_{i=1}^{k-2} \left(\mathbf{B}_k \mathbf{T}^\mathbf{x}_{i \rightarrow k} \delta \overline{\mathbf{x}}^a_i - \mathbf{T}^\mathbf{x}_{K \rightarrow k} \delta \mathbf{x}^{a+}_i\right),
 \end{align}
-If the $\mathbf{B}$ family is projective, then:
+and if the $\mathbf{B}$ family is projective, then:
 \begin{align}
-\mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \mathbf{B}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1}
+\mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{B}_k \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} & = \mathbf{T}^\mathbf{x}_{k \rightarrow K} \mathbf{T}^\mathbf{x}_{k-1 \rightarrow k} \mathbf{B}_{k-1} \nonumber \\ 
+& = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1}
 \end{align}
-so a simplified expression of $\delta \mathbf{x}^{a+}_{k-1}$ is:
+so a simplified expression of $\delta \mathbf{x}^{a+}_{k-1}$ can be written as:
 \begin{align}
 \label{eq:projective_condition_B}
 \boxed{\delta \mathbf{x}^{a+}_{k-1} = \mathbf{T}^\mathbf{x}_{k-1 \rightarrow K} \mathbf{B}_{k-1} \delta \overline{\mathbf{x}}^a_{k-1}}
@@ -516,24 +525,31 @@ that verifies \eqref{eq:transitive_condition_B} since both terms inside the summ
 & = 0
 \end{align}
 
+Finally, in the consistent methos, the background increment is simply obtained as:
 \begin{align}
 \label{eq:alternative_B}
-\delta \mathbf{x}^b_k & = \mathbf{B}_k \delta \overline{\mathbf{x}}^b_k
+\delta \mathbf{x}^b_k & = \mathbf{B}_k \delta \overline{\mathbf{x}}^b_k.
 \end{align}
+
+The full $\mathbf{B}$ preconditionning is mathematically equivalent to the square root $\mathbf{B}$ one, but in the case of a multi-incremental multi-resolution scheme where the $\mathbf{B}$ matrix depends on $k$, this equivalence is not guaranteed anymore. We discuss this point in more details in section \ref{sec:res}.
+
+
 %---------------------------------------------------------------------------------
 \section{Methodology and results}
+\label{sec:res}
 In order to illustrate the differences arising between the three methods due to the guess consistency, we have compared the results obtained with all the methods on a toy problem detailed in the present section.
 
 \subsection{Methodology}
 In this section we illustrate the differences arising between the three above-mentionned methods related to the guess consistency. To do so, we have built a bidimensional toy problem as follows:
 \begin{itemize}
- \item We consider periodic domain composed of bidimensional square grids with $N_x=101$ x-coordinates and $N_y=101$ y-coordinates (leading to a total of $m = N_x \times N_y$ points) and assume that this resolution corresponds to the full resolution of our prolem (e.g. this resolution corresponds to the last iteration $k=K$ of our multi-incremental multi-resolution scheme).
+ \item We consider a periodic domain composed of bidimensional square grids with $m_x=101$ x-coordinates and $m_y=101$ y-coordinates (leading to a total of $m = m_x \times m_y$ points) and assume that this resolution corresponds to the full resolution of our prolem (e.g. this resolution corresponds to the last iteration $k=K$ of our multi-incremental multi-resolution scheme).
  \item A $\mathbf{B}$ matrix is introduced with gaussian spectral variances defined as:
  \begin{align}
   \mathbf{B_{k,l}} = e^{-2((k^2 + l^2)\pi L_b)^2}, 
  \end{align}
- where $k \in [0:N_x/2]$, $l \in [-N_y/2:N_y/2]$ are the accessible wave numbers and $L_b$ is a correlation lenghtscale.
+ where $k \in [0:m_x/2]$, $l \in [-m_y/2:m_y/2]$ are the accessible wave numbers and $L_b$ is a correlation lenghtscale.
  We also define its grid point variance as:
+ (NB: quand on prend sigmabvar = 0, quest ce qu'on fait ?)
  \begin{align}
  \mathbf{B_{i,j}} = 1 + \sigma^b \sin(2\pi x_i) \sin(2\pi y_j),  
  \end{align}
@@ -546,44 +562,59 @@ where $\sigma^b$ can be modified, $x_i$ is the $i^{th}$ x-coordinate of the grid
  \begin{align}
  \mathbf{x}_b=\mathbf{x}^t + \mathbf{U}\nu^{b}.
  \end{align}
- \item In order to have the simpler problem, the observation operator is taken to be the identity. We also introduce $p$ observation points that are not necessarily on a grid point: (NB: we do not discuss about the cubic version ?)
+ \item In order to have the simpler problem, the observation operator is taken to be the identity. We also introduce $p=2000$ observation points that are not necessarily on grids points, and a linear observation operator: (NB: we do not discuss about the cubic version ?)
  \begin{align}
   \mathcal{H}\mathbf{x} = \mathbf{x}. 
  \end{align}
- \item And finally the observation error covariance matrix $\mathbf{R} \in \mathbb{R}^{p \times p}$ is simply defined as:
+ \item Finally the observation error covariance matrix $\mathbf{R} \in \mathbb{R}^{p \times p}$ is simply defined as:
  \begin{align}
  \mathbf{R}_{i,j} = \sigma^o.
  \end{align}
 \end{itemize}
 
-In order to illustrate the differences between the different cases we have mentioned, we applied a multi-incremental multi-resolution scheme using the three methods as well as different interpolators. The spectral decomposition is an orthogonal operator, which can be associated with a zero padding operator to build a transitive interpolator. It should be noted that usual grid-points interpolators like (bi-)linear and nearest-neighbor interpolators are not transitive in general. An important exception is the (bi-)linear interpolator when coarse grid points are colocated with fine grid points.
+In order to illustrate the differences between the different cases we have mentioned, we applied a multi-incremental multi-resolution scheme using the three methods as well as different interpolators. The spectral decomposition is an orthogonal operator, which can be associated with a zero padding operator to build a transitive interpolator. It should be noted that usual grid-points interpolators like (bi-)linear and nearest-neighbor interpolators are not transitive in general. An important exception is the (bi-)linear interpolator which is transitive when coarse grid points are colocated with fine grid points.
 
 \subsection{Results}
-As an illustrative case, we have choosen 
-NB:Show the quadratic cost function (obs and background) + tables
+NB:Show the quadratic cost function (obs and background) + tables + xgstd-xgth.
+
+To illustrate the differences between the different cases that we have mentionned, we have choosen to use a spectral interpolation as a transitive interpolator, and we also have tested bilinear interpolation which is transitive if the grid points of different iterations are colocated. We arbitrarily have taken the values of $L_b = 0.1$, $\sigma^o=0.1$. According to the convergence of our algorithm, we decided to realize 6 outer loops of 3 inner loops. The change of resolution is as follows:$\mathcal{R}_1 = $, $\mathcal{R}_2 = $ ...
+
+As expected, in the first case where transitive a interpolator is used, with a projective $\mathbf{B}$ matrix family, all the methods give the same results, and the two preconditionners are equivalent at machine precision.
+
+The fact that the cost function shows small peaks at each beginning of outer loop is due to the relinearization of the problem around the new guess as well as the change of resolution, making the problem different from the one that have been solved at the previous outer loop.
+
+The tables (\ref{tab:}) to (\ref{tab:}) summerize the differences or equivalence between the three methods and the two preconditionners in the case of a transitive interpolator and a "projective" $\mathbf{B}$ matrix family (), 
+
+
+
+
 
 %---------------------------------------------------------------------------------
 
 
 \conclusions  %% \conclusions[modified heading if necessary]
-TEXT
+Multi-incremental multi-resolution scheme is a powerfull way to improve computational efficiency of DA problems solving and might be more and more used in operational DA systems in a near future. In such an approach, we have shown that the question of the guess consistency is crucial since the results can be very different from a method to another according to the way the guess is calculated. We have discussed in detail this question and have shown that the choice of the interpolation operator used to realize the change of resolution at the outer loop level was very important. We have defined a class of interpolators called "transitive" interpolators that satisfy certain conditions ensuring the guess consistency. A subcase of transitive interpolators have been discussed concerning the $\mathbf{B}$ matrix family, introducing the "projective" $\mathbf{B}$ matrices for which low resolution members can be obtained from the high resolution ones using transitive interpolators. In this case, a simplified expression can be derived for the analysis increment and only the previous iteration is needed instead of all the previous ones.
+
+Through a toy DA problem, we have illustrated that in the "standard" method currently used in operational DA systems, the way the guess is used in the minimization is inconsistent and could give results that are very different from the theoretical ones. We introduced a new "consistent" method to compute the guess based on the idea of reversing the order of calculations. This method have two strong advantages: first, it ensures the guess consistency, and second, it requires much more simpler calculations. We have shown the ability of this method to reproduce the results of the "standard" one in the case where ().
+
+We have also discussed the equivalence of two well known preconditionners in a multi-incremental multi-resolution context and have shown that this equivalence does not necessarily hold. It is maintained if transitive interpolators are used and the $\mathbf{B}$ matrix family is "projective". If these conditions are not satisfied, the differences in the cost functions obtained with the two preconditionners can be huge and grow with the outer iterations. 
 
 %% The following commands are for the statements about the availability of data sets and/or software code corresponding to the manuscript.
 %% It is strongly recommended to make use of these sections in case data sets and/or software code have been part of your research the article is based on.
 
-\codeavailability{TEXT} %% use this section when having only software code available
+%\codeavailability{TEXT} %% use this section when having only software code available
 
 
-\dataavailability{TEXT} %% use this section when having only data sets available
+%\dataavailability{TEXT} %% use this section when having only data sets available
 
 
-\codedataavailability{TEXT} %% use this section when having data sets and software code available
+%\codedataavailability{TEXT} %% use this section when having data sets and software code available
 
 
-\sampleavailability{TEXT} %% use this section when having geoscientific samples available
+%\sampleavailability{TEXT} %% use this section when having geoscientific samples available
 
 
-\videosupplement{TEXT} %% use this section when having video supplements available
+%\videosupplement{TEXT} %% use this section when having video supplements available
 
 
 \appendix
@@ -608,15 +639,15 @@ TEXT
 
 
 
-\authorcontribution{TEXT} %% this section is mandatory
+%\authorcontribution{TEXT} %% this section is mandatory
 
-\competinginterests{TEXT} %% this section is mandatory even if you declare that no competing interests are present
+%\competinginterests{TEXT} %% this section is mandatory even if you declare that no competing interests are present
 
-\disclaimer{TEXT} %% optional section
+%\disclaimer{TEXT} %% optional section
 
-\begin{acknowledgements}
-TEXT
-\end{acknowledgements}
+%\begin{acknowledgements}
+%TEXT
+%\end{acknowledgements}
 
 
 
