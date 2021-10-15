@@ -537,6 +537,9 @@ The full $\mathbf{B}$ preconditionning is mathematically equivalent to the squar
 %---------------------------------------------------------------------------------
 \section{Methodology and results}
 \label{sec:res}
+
+(NB: talk about the tests we have done with nearest neighbor interpolation ?)
+
 In order to illustrate the differences arising between the three methods due to the guess consistency, we have compared the results obtained with all the methods on a toy problem detailed in the present section.
 
 \subsection{Methodology}
@@ -575,52 +578,21 @@ where $\sigma^b$ can be modified, $x_i$ is the $i^{th}$ x-coordinate of the grid
 In order to illustrate the differences between the different cases we have mentioned, we applied a multi-incremental multi-resolution scheme using the three methods as well as different interpolators. The spectral decomposition is an orthogonal operator, which can be associated with a zero padding operator to build a transitive interpolator. It should be noted that usual grid-points interpolators like (bi-)linear and nearest-neighbor interpolators are not transitive in general. An important exception is the (bi-)linear interpolator which is transitive when coarse grid points are colocated with fine grid points.
 
 \subsection{Results}
-NB:Show the quadratic cost function (obs and background) + tables + xgstd-xgth.
+NB:Show the quadratic cost function (obs and background) + xgstd-xgth (+ plots for transitivity ?).\\
 
-To illustrate the differences between the different cases that we have mentionned, we have choosen to use a spectral interpolation as a transitive interpolator, and we also have tested bilinear interpolation which is transitive if the grid points of different iterations are colocated. We arbitrarily have taken the values of $L_b = 0.1$, $\sigma^o=0.1$. According to the convergence of our algorithm, we decided to realize 6 outer loops of 3 inner loops. The change of resolution is as follows:$\mathcal{R}_1 = $, $\mathcal{R}_2 = $ ...
+To illustrate the differences between the different cases that we have mentionned, we have choosen to use a spectral interpolation as a transitive interpolator, and we also have tested bilinear interpolation which is transitive if the grid points of different iterations are colocated. We arbitrarily have taken the values of $L_b = 0.1$, $\sigma^o=0.1$. According to the convergence of our algorithm, we decided to realize 6 outer loops of 3 inner loops. The change of resolution has been taken as follows: $\mathcal{R}_1 = 21 \times 21$, $\mathcal{R}_2 = 31 \times 31$, $\mathcal{R}_3 = 41 \times 41$, $\mathcal{R}_4 = 51 \times 51$, $\mathcal{R}_5 = 81 \times 81$, $\mathcal{R}_6 = 101 \times 101$.
 
-As expected, in the first case where transitive a interpolator is used, with a projective $\mathbf{B}$ matrix family, all the methods give the same results, and the two preconditionners are equivalent at machine precision.
+As expected, in the first case where transitive a interpolator is used, with a projective $\mathbf{B}$ matrix family, all the methods give the same results (not shown), and the two preconditionners are equivalent at machine precision.
+
+Figures (\ref{fig04}) and (\ref{fig05}) respectively show the observational part of the quadratic cost function obtained with the complete (resp. simplified) versions of the "standard" and "theoretical" methods with both preconditionners in the case of an interpolator with right inverse and a "non projective $\mathbf{B}$ matrix family (corresponding to the results summarized in Table (\ref{tab02})). As expected, all the "complete" methods give the same results but the two preconditionners are not equivalent.
+
+idem with simplified.
+except in the case of the simplified theoretical method.
+
 
 The fact that the cost function shows small peaks at each beginning of outer loop is due to the relinearization of the problem around the new guess as well as the change of resolution, making the problem different from the one that have been solved at the previous outer loop.
 
-The Tables (\ref{tab01}) to (\ref{tab02}) summerize the differences or equivalence between the three methods and the two preconditionners in the case of a transitive interpolator and a "projective" $\mathbf{B}$ matrix family (Table (\ref{tab01})), interpolator with right inverse and "non projective" $\mathbf{B}$ matrix family (Table (\ref{tab02})), and finally in the case of an interpolator without right inverse and a "non projective" $\mathbf{B}$ matrix family (Table (\ref{tab03})).
-
-
-\begin{table}[H]
-\fontsize{8pt}{10.25pt}\selectfont
-\begin{tabular}{c|cc|ccccc|ccccc}
-\hline
-\multicolumn{3}{c|}{} & \multicolumn{5}{c|}{Full $\mathbf{B}$} & \multicolumn{5}{c}{Square-root $\mathbf{B}$} \\
-\hline
-\multicolumn{3}{c|}{} & \multicolumn{2}{c|}{Theoretical} & \multicolumn{2}{c|}{Standard} & Consistent & \multicolumn{2}{c|}{Theoretical} & \multicolumn{2}{c|}{Standard} & Consistent \\
-\multicolumn{3}{c|}{} & Comp. & Simp. & Comp. & Simp. & & Comp. & Simp. & Comp. & Simp. &  \\
-\hline
-\multirow{5}{*}{Full $\mathbf{B}$} & \multirow{2}{*}{Theoretical} & Comp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
-\cline{3-13}
- &  & Simp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
- \cline{2-13}
- & \multirow{2}{*}{Standard} & Comp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
- \cline{3-13}
- &  & Simp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
-\cline{2-13}
- & Aternative & & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
-\hline
-\hline
-\multirow{5}{*}{Square-root $\mathbf{B}$} & \multirow{2}{*}{Theoretical} & Comp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
-\cline{3-13}
- &  & Simp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
- \cline{2-13}
- & \multirow{2}{*}{Standard} & Comp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
- \cline{3-13}
- &  & Simp. & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
-\cline{2-13}
- & Aternative & & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} & {\ding{51}} \\
-\hline
-\hline
-\end{tabular}
-\caption{\label{tab01} summary of equivalence between the three methods and the two preconditionners in the case of a transitive interpolator and a "projective" $\mathbf{B}$ matrix family.}
-\end{table}
-
+The Tables (\ref{tab01}) and (\ref{tab02}) summerize the differences or equivalence between the three methods and the two preconditionners in the case of an interpolator with right inverse and a "non projective" $\mathbf{B}$ matrix family (Table (\ref{tab01})), and in the case of an interpolator without right inverse and a "non projective" $\mathbf{B}$ matrix family (Table (\ref{tab02})).
 
 \begin{table}[H]
 \fontsize{8pt}{10.25pt}\selectfont
@@ -654,7 +626,7 @@ The Tables (\ref{tab01}) to (\ref{tab02}) summerize the differences or equivalen
 \hline
 \hline
 \end{tabular}
-\caption{\label{tab02} summary of equivalence between the three methods and the two preconditionners in the case of an interpolator with right inverse and a "non projective" $\mathbf{B}$ matrix family.}
+\caption{\label{tab01} summary of equivalence between the three methods and the two preconditionners in the case of an interpolator with right inverse and a "non projective" $\mathbf{B}$ matrix family.}
 \end{table}
 
 
@@ -690,7 +662,7 @@ The Tables (\ref{tab01}) to (\ref{tab02}) summerize the differences or equivalen
 \hline
 \hline
 \end{tabular}
-\caption{\label{tab03} summary of equivalence between the three methods and the two preconditionners in the case of an interpolator without right inverse and a "non projective" $\mathbf{B}$ matrix family where $K>2$ (the case where $K=2$ gives the same results as in Table (\ref{tab02})).}
+\caption{\label{tab02} summary of equivalence between the three methods and the two preconditionners in the case of an interpolator without right inverse and a "non projective" $\mathbf{B}$ matrix family where $K>2$ (the case where $K=2$ gives the same results as in Table (\ref{tab02})).}
 \end{table}
 
 
